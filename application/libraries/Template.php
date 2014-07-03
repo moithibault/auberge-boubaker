@@ -7,6 +7,15 @@ class Template {
 		{
 			$this->template_data[$name] = $value;
 		}
+
+		function setJsSrc($script)
+		{
+			$this->template_data['js'] = '<script src="'.$script.'" type="text/javascript"></script>';
+		}
+		function setJs($script)
+		{
+			$this->template_data['js'] = '<script>'.$script.'</script>';
+		}
 	
 		function load($template = '', $view = '' , $view_data = array(), $return = FALSE)
 		{               
