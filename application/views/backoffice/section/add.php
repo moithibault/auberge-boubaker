@@ -10,6 +10,7 @@ if(isset($update)){
   $title = $update->title;
   $formtitle = 'Modification de la section <strong>'.$title.'</strong>';
   $content = $update->content;
+  $galerie = $update->galerie;
    if($update->visible == 1)$visible =  'checked';
 }
 else{
@@ -25,6 +26,8 @@ echo validation_errors();
 
 $title = (empty(set_value('title'))) ? $title : set_value('title');
 $content = (empty(set_value('content'))) ? $content : set_value('content');
+$galerie = (empty(set_value('galerie'))) ? $galerie : set_value('galerie');
+
 if(set_value('visible') == 1)$visible =  'checked';
 
 

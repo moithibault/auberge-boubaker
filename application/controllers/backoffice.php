@@ -91,7 +91,9 @@ class Backoffice extends CI_Controller {
 
         if($this->form_validation->run() === TRUE){
             //On rentre tout dans la BDD
-            $this->section->create($this->input->post('title'), $this->input->post('content'), $this->input->post('galerie'), $this->input->post('visible'));
+            if(!empty($this->input->post('id'))) $this->section->update($this->input->post('id'), $this->input->post('title'), $this->input->post('content'), $this->input->post('galerie'), $this->input->post('visible'));
+            else $this->section->create($this->input->post('title'), $this->input->post('content'), $this->input->post('galerie'), $this->input->post('visible'));
+           
             $this->viewSections();
         }
         else{
@@ -107,6 +109,45 @@ class Backoffice extends CI_Controller {
 
     // Edite une section
     public function editSection($id){
+          $galeries = array('numero uno', 'dos', 'tres');
+        $galeries_tostring = '';
+        $i = 0;
+        foreach($galeries AS $galerie){
+            if($i != 0) $galeries_tostring .= ',';
+            $galeries_tostring .= '\''.$galerie.'\'';
+            $i++;
+        }
+
+        $this->template->set('js', '<script src="'.base_url().'assets/wysihtml5/wysihtml5-0.3.0.js"></script>
+            <script src="'.base_url().'assets/wysihtml5/bootstrap-wysihtml5.js"></script>            <script>$(\'.textarea\').wysihtml5();</script>
+            <script src="'.base_url().'assets/typeahead/typeahead.bundle.js"></script>
+            <script>
+            var substringMatcher = function(strs) {
+                return function findMatches(q, cb) {
+                    var matches, substringRegex;
+                    matches = [];
+                    substrRegex = new RegExp(q, \'i\');
+                    $.each(strs, function(i, str) {
+                        if (substrRegex.test(str)) {
+                            matches.push({ value: str });
+                        }
+                    });
+                    cb(matches);
+                };
+            };
+            var galeries = ['.$galeries_tostring.'];
+            $(\'#galerie .typeahead\').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 1
+            },
+            {
+                name: \'galeries\',
+                displayKey: \'value\',
+                source: substringMatcher(galeries)
+            }); </script>');
+        $this->template->set('css', '<link href="'.base_url().'assets/wysihtml5/bootstrap-wysihtml5.css" rel="stylesheet">
+            <link href="'.base_url().'assets/typeahead/typeahead.css" rel="stylesheet">');
         $data['update'] = $this->section->getById($id);
         $this->template->load('backoffice/template','backoffice/section/add', $data);
     }

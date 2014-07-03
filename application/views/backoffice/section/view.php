@@ -18,8 +18,8 @@ foreach($sections AS $section){
 echo '
 <div class="list-group-item '.$state.'">
    <h4 class="list-group-item-heading"> <span class="'.$icon.'"></span> '.$section->title.'</h4>
-    <p class="list-group-item-text">crée le '.date('d-m-Y',$section->created_at).' à '.date('H:i:s', $section->created_at).' </p>
-     <p class="list-group-item-text">'.anchor('backoffice/editSection/'.$section->id, 'Editer', array('class' => 'btn btn-primary')).' 
+    <p class="list-group-item-text">crée le '.date('d-m-Y',$section->created_at).' à '.date('H:i:s', $section->created_at).' <br>galerie associée : '.$section->galerie.'</p>
+     <p class="list-group-item-text">'.anchor('backoffice/editSection/'.$section->id, 'Editer', array('class' => 'btn btn-primary')).'
      '.anchor('#', 'Supprimer', array('class' => 'btn btn-danger', 'data-toggle' => 'modal', 'data-target'=>'#delete'.$section->id)).'</p>
 </div>
 

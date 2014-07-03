@@ -12,6 +12,7 @@ class Section extends CI_Model{
 			`title` varchar(255) NOT NULL,
 			`content` text NOT NULL,
 			`visible` smallint(1) DEFAULT 0,
+			`galerie` varchar(64),
 			`created_at` int(11) NOT NULL,
 			PRIMARY KEY(`id`)
 			);');
@@ -24,25 +25,35 @@ class Section extends CI_Model{
 
 	//Pour le menu et le listing
 	function get(){
-		$query = $this->db->query('SELECT id, title, content, visible, created_at FROM sections ORDER BY visible, created_at DESC');
+		$query = $this->db->query('SELECT id, title, content, visible, galerie, created_at FROM sections ORDER BY visible, created_at DESC');
 		return $query->result();
 	}
 	
 	//Pour la vue et la modification
 	function getById($id){
-		$query = $this->db->query('SELECT id, title, content, visible, created_at FROM sections WHERE id = "'.$id.'"');
+		$query = $this->db->query('SELECT id, title, content, visible, galerie, created_at FROM sections WHERE id = "'.$id.'"');
 		return $query->row();
 	}
 
 	//creation d'une entrée
-	function create($title, $content, $visible, $galerie){
+	function create($title, $content , $galerie, $visible){
 		if($visible == 1){
 			$v = 1;
 		}else{
 			$v = 0;
 		}
-		$this->db->query('INSERT INTO sections(`id`, `title`, `content`, `visible`, `created_at`) VALUES 
-			(0,"'.$title.'", "'.$content.'", '.$v.', '.time().' )');
+		$this->db->query('INSERT INTO sections(`id`, `title`, `content`, `visible`, `galerie`, `created_at`) VALUES 
+			(0,"'.$title.'", "'.$content.'", '.$v.', "'.$galerie.'", '.time().' )');
+	}
+
+	//update d'une entrée
+	function update($id, $title, $content , $galerie, $visible){
+		if($visible == 1){
+			$v = 1;
+		}else{
+			$v = 0;
+		}
+		$this->db->query('UPDATE sections SET title = "'.$title.'", content = "'.$content.'", visible = '.$v.', galerie = "'.$galerie.'" WHERE id = '.$id);
 	}
 
 	// Supprime une entrée
