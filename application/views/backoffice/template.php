@@ -57,9 +57,9 @@
                <span class="glyphicon glyphicon-camera"></span> 
                Photos <span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
-            <li><?= anchor('backoffice/add_photo', '<span class="glyphicon glyphicon-plus"></span>  Nouvelle'); ?></li>
+            <li><?= anchor('backoffice/addPhoto', '<span class="glyphicon glyphicon-plus"></span>  Nouvelle'); ?></li>
             <li class="divider"></li>
-             <li><?= anchor('backoffice/get_photos', 'Toutes'); ?></li>
+             <li><?= anchor('backoffice/viewPhotos', 'Toutes'); ?></li>
           </ul>
         </li>
 

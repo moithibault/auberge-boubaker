@@ -1,4 +1,4 @@
-<div class="panel panel-default">
+<div class="panel panel-info">
   <div class="panel-heading">
     <h3 class="panel-title">Sections </h3>
   </div>
@@ -18,8 +18,14 @@ foreach($sections AS $section){
 echo '
 <div class="list-group-item '.$state.'">
    <h4 class="list-group-item-heading"> <span class="'.$icon.'"></span> '.$section->title.'</h4>
-    <p class="list-group-item-text">crée le '.date('d-m-Y',$section->created_at).' à '.date('H:i:s', $section->created_at).' <br>galerie associée : '.$section->galerie.'</p>
-     <p class="list-group-item-text">'.anchor('backoffice/editSection/'.$section->id, 'Editer', array('class' => 'btn btn-primary')).'
+    <p class="list-group-item-text">crée le '.date('d-m-Y',$section->created_at).' à '.date('H:i:s', $section->created_at);
+    if(!empty($section->galerie)){
+        echo     '<br>
+    <h4>'.anchor('backoffice/viewPhotos#'.strtolower(trim($section->galerie)), '<span class="glyphicon glyphicon-picture"></span> '.$section->galerie, array('class' => 'label label-success')).'</h4></p>
+    <hr/>';
+    } 
+echo'
+    <p class="list-group-item-text">'.anchor('backoffice/editSection/'.$section->id, 'Editer', array('class' => 'btn btn-primary')).'
      '.anchor('#', 'Supprimer', array('class' => 'btn btn-danger', 'data-toggle' => 'modal', 'data-target'=>'#delete'.$section->id)).'</p>
 </div>
 

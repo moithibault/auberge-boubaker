@@ -16,28 +16,216 @@ class Backoffice extends CI_Controller {
         }
         else{
                $this->load->model('section');
+            $this->load->model('photo');
         }
     }
 
     public function index()
     {   
-     
-        // On transmet la liste des sections au template (pour le menu)
-        $data['sections'] = $this->section->get();
-        $this->template->load('backoffice/template','backoffice/index', $data);
+        $this->template->load('backoffice/template','backoffice/index');
     }
+
+    //ajouter une photo
+    public function addPhoto(){
+        //Chargement de wysihtml5 pour l'edition du contenu et de typeahead pour l'autocomplete des tags galerie
+        $galeries = $this->photo->getGaleries();
+        $galeries_tostring = '';
+        $i = 0;
+        foreach($galeries AS $galerie){
+            if($i != 0) $galeries_tostring .= ',';
+            $galeries_tostring .= '\''.$galerie->galerie.'\'';
+            $i++;
+        }
+
+
+        $this->template->set('js', '<script src="'.base_url().'assets/wysihtml5/wysihtml5-0.3.0.js"></script>
+            <script src="'.base_url().'assets/wysihtml5/bootstrap-wysihtml5.js"></script>            <script>$(\'.textarea\').wysihtml5();</script>
+            <script src="'.base_url().'assets/typeahead/typeahead.bundle.js"></script>
+            <script>
+            var substringMatcher = function(strs) {
+                return function findMatches(q, cb) {
+                    var matches, substringRegex;
+                    matches = [];
+                    substrRegex = new RegExp(q, \'i\');
+                    $.each(strs, function(i, str) {
+                        if (substrRegex.test(str)) {
+                            matches.push({ value: str });
+                        }
+                    });
+                    cb(matches);
+                };
+            };
+            var galeries = ['.$galeries_tostring.'];
+            $(\'#galerie .typeahead\').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 1
+            },
+            {
+                name: \'galeries\',
+                displayKey: \'value\',
+                source: substringMatcher(galeries)
+            }); </script>');
+        $this->template->set('css', '<link href="'.base_url().'assets/wysihtml5/bootstrap-wysihtml5.css" rel="stylesheet">
+            <link href="'.base_url().'assets/typeahead/typeahead.css" rel="stylesheet">');
+
+        $this->template->load('backoffice/template','backoffice/photo/add');
+
+
+    }
+
+
+    // Traité les informations d'ajout d'une photo
+
+    public function post_addPhoto(){
+        $this->form_validation->set_rules('title', 'Titre', 'required|xss_clean');
+        $this->form_validation->set_rules('description', 'Description', 'required|xss_clean');
+        $this->form_validation->set_rules('galerie', 'Galerie', 'xss_clean');
+        // On change les delimiters poru avoir le style bootstrap
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+  <strong>Erreurs!</strong> ', '</div>');
+        // On met en français les messages d'erreurs de type champs obligatoire
+        $this->form_validation->set_message('required', 'Le champ %s est requis');
+
+        if($this->form_validation->run() === TRUE){
+                //On rentre dans la BDD
+                if(!empty($this->input->post('id'))){
+                    $this->photo->update($this->input->post('id'), $this->input->post('title'), $this->input->post('description'), $this->input->post('galerie'));
+                    $this->viewPhotos();
+                }
+                else{
+                    //On enregistre l'image sur le serveur
+                    $config['upload_path'] = ABSOLUTE_URL.'assets/upload/';
+                    $config['allowed_types'] = 'gif|jpg|png';
+                    $config['max_size'] = '1000';
+                    $config['max_width']  = '3000';
+                    $config['max_height']  = '3000';
+                    $config['file_name']  = $this->photo->getFuturId();
+                    $this->load->library('upload', $config);
+                    $upload = $this->upload->do_upload();
+                    if ( ! $upload){
+                      $data['errors'] = array($this->upload->display_errors());
+                      $this->template->load('backoffice/template','backoffice/photo/add', $data);
+                    }
+                  else{
+                        $ext = $this->upload->data()['file_ext'];
+                        //watermark
+                        $config['source_image'] = ABSOLUTE_URL.'assets/upload/'.$config['file_name'].$ext;
+                        $config['wm_text'] = 'Copyright 2014 - Auberge Boubaker ';
+                        $config['wm_type'] = 'text';
+                        $config['wm_font_path'] = ABSOLUTE_URL.'assets/fonts/chocolate.ttf';
+                        $config['wm_font_size'] = '15';
+                        $config['wm_font_color'] = 'ffffff';
+                        $config['wm_vrt_alignment'] = 'bottom';
+                        $config['wm_hor_alignment'] = 'center';
+                        $config['wm_padding'] = '-20';
+                        $this->load->library('image_lib', $config); 
+                        $this->image_lib->watermark();
+
+                        //on redimensionne l'image dans le dossier original
+                        $config['image_library'] = 'gd2';
+                        $config['source_image'] = ABSOLUTE_URL.'assets/upload/'.$config['file_name'].$ext;
+                        $config['new_image'] = ABSOLUTE_URL.'assets/upload/original/';
+                        $config['width']     = 800;
+                        $config['height']   = 600;
+                        $this->image_lib->initialize($config);
+                        $this->image_lib->resize();
+                        
+
+                        //Maintenant on crée la miniature
+                        $config['source_image'] = ABSOLUTE_URL.'assets/upload/original/'.$config['file_name'].$ext;
+                        $config['new_image'] = ABSOLUTE_URL.'assets/upload/thumbnail/';
+                        $config['width']     = 300;
+                        $config['height']   = 225;
+                        $this->image_lib->initialize($config);
+                        $this->image_lib->resize();
+
+
+                        $this->photo->create($this->input->post('title'), $this->input->post('description'), $this->input->post('galerie'), $ext);
+                        $this->viewPhotos();
+                    }
+                
+                
+       
+             }
+         }
+        else{
+            $this->template->load('backoffice/template','backoffice/photo/add');
+        }
+    }
+
+     // Edite une section
+    public function editPhoto($id){
+        $galeries = $this->photo->getGaleries();
+        $galeries_tostring = '';
+        $i = 0;
+        foreach($galeries AS $galerie){
+            if($i != 0) $galeries_tostring .= ',';
+            $galeries_tostring .= '\''.$galerie->galerie.'\'';
+            $i++;
+        }
+
+        $this->template->set('js', '<script src="'.base_url().'assets/wysihtml5/wysihtml5-0.3.0.js"></script>
+            <script src="'.base_url().'assets/wysihtml5/bootstrap-wysihtml5.js"></script>            <script>$(\'.textarea\').wysihtml5();</script>
+            <script src="'.base_url().'assets/typeahead/typeahead.bundle.js"></script>
+            <script>
+            var substringMatcher = function(strs) {
+                return function findMatches(q, cb) {
+                    var matches, substringRegex;
+                    matches = [];
+                    substrRegex = new RegExp(q, \'i\');
+                    $.each(strs, function(i, str) {
+                        if (substrRegex.test(str)) {
+                            matches.push({ value: str });
+                        }
+                    });
+                    cb(matches);
+                };
+            };
+            var galeries = ['.$galeries_tostring.'];
+            $(\'#galerie .typeahead\').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 1
+            },
+            {
+                name: \'galeries\',
+                displayKey: \'value\',
+                source: substringMatcher(galeries)
+            }); </script>');
+        $this->template->set('css', '<link href="'.base_url().'assets/wysihtml5/bootstrap-wysihtml5.css" rel="stylesheet">
+            <link href="'.base_url().'assets/typeahead/typeahead.css" rel="stylesheet">');
+        $data['update'] = $this->photo->getById($id);
+        $this->template->load('backoffice/template','backoffice/photo/add', $data);
+    }
+
+    // Affiché la liste des photos
+    public function viewPhotos(){
+        $data['path_original'] = base_url().'assets/upload/original/';
+        $data['path_thumbnail'] = base_url().'assets/upload/thumbnail/';
+        $data['galeries'] = $this->photo->getByGaleries();
+        $this->template->load('backoffice/template','backoffice/photo/view', $data);
+    }
+
+    // Supprime une photo
+    public function deletePhoto($id){
+        $this->photo->delete($id);
+        $this->viewPhotos();
+    }
+
 
     // ajouter une section
     
     public function addSection(){
         // On charge la ue qui permet d'ajouter une section
         //Chargement de wysihtml5 pour l'edition du contenu et de typeahead pour l'autocomplete des tags galerie
-        $galeries = array('numero uno', 'dos', 'tres');
+        $galeries = $this->photo->getGaleries();
         $galeries_tostring = '';
         $i = 0;
         foreach($galeries AS $galerie){
             if($i != 0) $galeries_tostring .= ',';
-            $galeries_tostring .= '\''.$galerie.'\'';
+            $galeries_tostring .= '\''.$galerie->galerie.'\'';
             $i++;
         }
 
@@ -109,12 +297,12 @@ class Backoffice extends CI_Controller {
 
     // Edite une section
     public function editSection($id){
-          $galeries = array('numero uno', 'dos', 'tres');
+        $galeries = $this->photo->getGaleries();
         $galeries_tostring = '';
         $i = 0;
         foreach($galeries AS $galerie){
             if($i != 0) $galeries_tostring .= ',';
-            $galeries_tostring .= '\''.$galerie.'\'';
+            $galeries_tostring .= '\''.$galerie->galerie.'\'';
             $i++;
         }
 

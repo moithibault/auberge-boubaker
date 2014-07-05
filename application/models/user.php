@@ -4,7 +4,7 @@ class User extends CI_Model{
 	function __construct(){
 
 		parent::__construct();
-		// On crée la table user si elle n'existe pas dans la base de données avec l'admin
+		// On crée la table users si elle n'existe pas dans la base de données avec l'admin
 		/*
 		$this->db->query('
 			CREATE TABLE IF NOT EXISTS `users`(

@@ -15,6 +15,7 @@
 |
 */
 $config['base_url']	= 'http://localhost/bouba/';
+define('ABSOLUTE_URL',		$_SERVER['DOCUMENT_ROOT'].'/bouba/');
 
 /*
 |--------------------------------------------------------------------------
