@@ -61,6 +61,12 @@ class Photo extends CI_Model{
 		return $query->result();
 	}
 	
+	//Pour les sections
+	function getByGalerie($galerie){
+		$query = $this->db->query('SELECT id, title, description, galerie, extension, created_at FROM photos WHERE galerie = "'.$galerie.'" ORDER BY created_at DESC');
+		return $query->result();
+	}
+	
 	//Pour la vue et la modification
 	function getById($id){
 		$query = $this->db->query('SELECT  id, title, description, galerie, extension, created_at FROM photos WHERE id = "'.$id.'"');

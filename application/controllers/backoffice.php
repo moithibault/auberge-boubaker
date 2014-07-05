@@ -98,9 +98,7 @@ class Backoffice extends CI_Controller {
                     //On enregistre l'image sur le serveur
                     $config['upload_path'] = ABSOLUTE_URL.'assets/upload/';
                     $config['allowed_types'] = 'gif|jpg|png';
-                    $config['max_size'] = '1000';
-                    $config['max_width']  = '3000';
-                    $config['max_height']  = '3000';
+
                     $config['file_name']  = $this->photo->getFuturId();
                     $this->load->library('upload', $config);
                     $upload = $this->upload->do_upload();
@@ -267,7 +265,9 @@ class Backoffice extends CI_Controller {
     // Traité les informations d'ajout d'une section
     public function post_addSection(){
         $this->form_validation->set_rules('title', 'Titre', 'required|xss_clean');
+        $this->form_validation->set_rules('menu', 'Titre du menu', 'required|xss_clean');
         $this->form_validation->set_rules('content', 'Contenu', 'required|xss_clean');
+        $this->form_validation->set_rules('aside', 'Colonne', 'xss_clean');
         $this->form_validation->set_rules('visible', 'Visible', 'xss_clean');
         $this->form_validation->set_rules('galerie', 'Galerie', 'xss_clean');
         // On change les delimiters poru avoir le style bootstrap
@@ -279,8 +279,8 @@ class Backoffice extends CI_Controller {
 
         if($this->form_validation->run() === TRUE){
             //On rentre tout dans la BDD
-            if(!empty($this->input->post('id'))) $this->section->update($this->input->post('id'), $this->input->post('title'), $this->input->post('content'), $this->input->post('galerie'), $this->input->post('visible'));
-            else $this->section->create($this->input->post('title'), $this->input->post('content'), $this->input->post('galerie'), $this->input->post('visible'));
+            if(!empty($this->input->post('id'))) $this->section->update($this->input->post('id'), $this->input->post('title'), $this->input->post('menu'), $this->input->post('content'),  $this->input->post('aside'), $this->input->post('galerie'), $this->input->post('visible'));
+            else $this->section->create($this->input->post('title'), $this->input->post('menu'), $this->input->post('content'), $this->input->post('aside'),  $this->input->post('galerie'), $this->input->post('visible'));
            
             $this->viewSections();
         }
